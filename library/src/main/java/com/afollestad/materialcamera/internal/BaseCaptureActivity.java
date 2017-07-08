@@ -3,6 +3,8 @@ package com.afollestad.materialcamera.internal;
 import android.Manifest;
 import android.app.Activity;
 import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -23,6 +25,9 @@ import android.support.v7.app.AppCompatDelegate;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+
 import com.afollestad.materialcamera.MaterialCamera;
 import com.afollestad.materialcamera.R;
 import com.afollestad.materialcamera.TimeLimitReachedException;
@@ -31,11 +36,12 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import java.io.File;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Arrays;
 import java.util.List;
 
 /** @author Aidan Follestad (afollestad) */
 public abstract class BaseCaptureActivity extends AppCompatActivity
-    implements BaseCaptureInterface {
+    implements BaseCaptureInterface, PlaybackVideoFragment.EditTextListener, EditFragment.LicensePlayback {
 
   private int mCameraPosition = CAMERA_POSITION_UNKNOWN;
   private int mFlashMode = FLASH_MODE_OFF;
@@ -47,6 +53,10 @@ public abstract class BaseCaptureActivity extends AppCompatActivity
   private Object mBackCameraId;
   private boolean mDidRecord = false;
   private List<Integer> mFlashModes;
+  private FrameLayout frameLayout;
+  private LinearLayout frameContainer;  //   <-------------- check here
+  private String [] License_text = new String [10];
+  private  int license_count = 0;
 
   public static final int PERMISSION_RC = 69;
 
@@ -105,6 +115,7 @@ public abstract class BaseCaptureActivity extends AppCompatActivity
       return;
     }
     setContentView(R.layout.mcam_activity_videocapture);
+    frameLayout = (FrameLayout) findViewById(R.id.Editcontainer);
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       final int primaryColor = getIntent().getIntExtra(CameraIntentKey.PRIMARY_COLOR, 0);
@@ -143,6 +154,24 @@ public abstract class BaseCaptureActivity extends AppCompatActivity
         .addFlags(
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
                 | WindowManager.LayoutParams.FLAG_FULLSCREEN);
+  }
+
+  @Override
+  public final void LicenseBack(String license){
+      License_text[license_count] = license;
+      license_count++;
+      frameLayout.setVisibility(View.GONE);
+  }
+
+  @Override
+  public final void onVideoPaused(){
+      if(License_text.length < 11)
+      frameLayout.setVisibility(View.VISIBLE);
+  }
+
+  @Override
+  public final void onAccept(){
+
   }
 
   private void checkPermissions() {
@@ -239,6 +268,9 @@ public abstract class BaseCaptureActivity extends AppCompatActivity
   }
 
   @Override
+  public String[] returnArray(){ return License_text;}
+
+  @Override
   public boolean hasLengthLimit() {
     return getLengthLimit() > -1;
   }
@@ -301,6 +333,8 @@ public abstract class BaseCaptureActivity extends AppCompatActivity
 
   @Override
   public final void onRetry(@Nullable String outputUri) {
+    Arrays.fill(License_text,null);
+    license_count = 0;
     if (outputUri != null) deleteOutputFile(outputUri);
     if (!shouldAutoSubmit() || restartTimerOnRetry()) setRecordingStart(-1);
     if (getIntent().getBooleanExtra(CameraIntentKey.RETRY_EXITS, false)) {
@@ -324,23 +358,29 @@ public abstract class BaseCaptureActivity extends AppCompatActivity
         finish();
         return;
       }
-      useMedia(outputUri);
+      useMedia(outputUri, License_text);
     } else {
       if (!hasLengthLimit() || !continueTimerInPlayback()) {
         // No countdown or countdown should not continue through playback, reset timer to 0
         setRecordingStart(-1);
       }
+      Fragment fragEdit = EditFragment.newInstance("title");
       Fragment frag =
           PlaybackVideoFragment.newInstance(
               outputUri, allowRetry(), getIntent().getIntExtra(CameraIntentKey.PRIMARY_COLOR, 0));
-      getFragmentManager().beginTransaction().replace(R.id.container, frag).commit();
+      //getFragmentManager().beginTransaction().replace(R.id.container, frag).commit();
+      FragmentManager fm = getFragmentManager();
+      FragmentTransaction ft = fm.beginTransaction();
+      ft.add(R.id.container, frag);
+      ft.add(R.id.Editcontainer, fragEdit);
+      ft.commit();
     }
   }
 
   @Override
   public void onShowStillshot(String outputUri) {
     if (shouldAutoSubmit()) {
-      useMedia(outputUri);
+      useMedia(outputUri, License_text);
     } else {
       Fragment frag =
           StillshotPreviewFragment.newInstance(
@@ -395,13 +435,15 @@ public abstract class BaseCaptureActivity extends AppCompatActivity
   }
 
   @Override
-  public final void useMedia(String uri) {
+  public final void useMedia(String uri, String [] license) {
     if (uri != null) {
-      setResult(
+       setResult(
           Activity.RESULT_OK,
           getIntent()
               .putExtra(MaterialCamera.STATUS_EXTRA, MaterialCamera.STATUS_RECORDED)
-              .setDataAndType(Uri.parse(uri), useStillshot() ? "image/jpeg" : "video/mp4"));
+              .putExtra(MaterialCamera.LICENSE_EXTRA, license)
+              .putExtra(MaterialCamera.URI_EXTRA, uri));
+              //.setDataAndType(Uri.parse(uri), useStillshot() ? "image/jpeg" : "video/mp4"));
     }
     finish();
   }

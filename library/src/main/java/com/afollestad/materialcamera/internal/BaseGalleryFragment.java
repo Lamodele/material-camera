@@ -2,10 +2,16 @@ package com.afollestad.materialcamera.internal;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.view.OrientationEventListener;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LayoutAnimationController;
 import android.widget.Button;
 import com.afollestad.materialcamera.R;
 import com.afollestad.materialcamera.util.CameraUtil;
@@ -20,6 +26,7 @@ public abstract class BaseGalleryFragment extends Fragment
   View mControlsFrame;
   Button mRetry;
   Button mConfirm;
+
 
   @SuppressWarnings("deprecation")
   @Override
@@ -72,4 +79,6 @@ public abstract class BaseGalleryFragment extends Fragment
         .positiveText(android.R.string.ok)
         .show();
   }
+
+
 }

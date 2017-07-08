@@ -9,6 +9,7 @@ import static com.afollestad.materialcamera.internal.BaseCaptureActivity.FLASH_M
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.ColorStateList;
@@ -25,8 +26,11 @@ import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.content.res.AppCompatResources;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.OrientationEventListener;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -55,6 +59,7 @@ abstract class BaseCameraFragment extends Fragment
   protected Handler mPositionHandler;
   protected MediaRecorder mMediaRecorder;
   private int mIconTextColor;
+
 
   protected static void LOG(Object context, String message) {
     Log.d(
@@ -115,6 +120,8 @@ abstract class BaseCameraFragment extends Fragment
     mButtonStillshot = (ImageButton) view.findViewById(R.id.stillshot);
     mRecordDuration = (TextView) view.findViewById(R.id.recordDuration);
     mButtonFacing = (ImageButton) view.findViewById(R.id.facing);
+
+
     if (mInterface.shouldHideCameraFacing() || CameraUtil.isChromium()) {
       mButtonFacing.setVisibility(View.GONE);
     } else {
@@ -140,7 +147,7 @@ abstract class BaseCameraFragment extends Fragment
     } else {
       mIconTextColor = ContextCompat.getColor(getActivity(), R.color.mcam_color_dark);
     }
-    view.findViewById(R.id.controlsFrame).setBackgroundColor(primaryColor);
+    //view.findViewById(R.id.controlsFrame).setBackgroundColor(primaryColor);   <----- enable here
     mRecordDuration.setTextColor(mIconTextColor);
 
     if (mMediaRecorder != null && mIsRecording) {
@@ -468,4 +475,5 @@ abstract class BaseCameraFragment extends Fragment
 
     setImageRes(mButtonFlash, res);
   }
+
 }

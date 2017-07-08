@@ -3,5 +3,7 @@
 
     <color name="mcam_color_light">#FAFAFA</color>
     <color name="mcam_color_dark">#424242</color>
+    <color name="mcam_color_transparent">#00ff0000</color>
+    <color name="mcam_color_light_blue_">#03A9F4</color>
 
 </resources>

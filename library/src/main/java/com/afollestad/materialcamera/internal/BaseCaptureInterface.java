@@ -18,6 +18,8 @@ public interface BaseCaptureInterface {
 
   void setRecordingEnd(long end);
 
+  String[] returnArray();
+
   long getRecordingStart();
 
   long getRecordingEnd();
@@ -45,7 +47,7 @@ public interface BaseCaptureInterface {
 
   Object getBackCamera();
 
-  void useMedia(String uri);
+  void useMedia(String uri, String[] license);
 
   boolean shouldAutoSubmit();
 

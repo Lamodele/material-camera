@@ -10,6 +10,8 @@ import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+
 import com.afollestad.easyvideoplayer.EasyVideoCallback;
 import com.afollestad.easyvideoplayer.EasyVideoPlayer;
 import com.afollestad.materialcamera.R;
@@ -40,6 +42,14 @@ public class PlaybackVideoFragment extends Fragment
           }
         }
       };
+
+
+    interface EditTextListener {
+        void onVideoPaused();
+        void onAccept();    }
+
+
+
 
   @SuppressWarnings("deprecation")
   @Override
@@ -100,7 +110,7 @@ public class PlaybackVideoFragment extends Fragment
       mPlayer.setLeftAction(EasyVideoPlayer.LEFT_ACTION_RETRY);
     mPlayer.setRightAction(EasyVideoPlayer.RIGHT_ACTION_SUBMIT);
 
-    mPlayer.setThemeColor(getArguments().getInt(CameraIntentKey.PRIMARY_COLOR));
+    mPlayer.setThemeColor(getArguments().getInt(String.valueOf(getResources().getColor(R.color.mcam_color_transparent))));// <---
     mOutputUri = getArguments().getString("output_uri");
 
     if (mInterface.hasLengthLimit()
@@ -138,7 +148,7 @@ public class PlaybackVideoFragment extends Fragment
       mPlayer.release();
       mPlayer = null;
     }
-    if (mInterface != null) mInterface.useMedia(mOutputUri);
+    if (mInterface != null) mInterface.useMedia(mOutputUri, mInterface.returnArray()); // edit here <-----------------------
   }
 
   @Override
@@ -150,7 +160,10 @@ public class PlaybackVideoFragment extends Fragment
   public void onStarted(EasyVideoPlayer player) {}
 
   @Override
-  public void onPaused(EasyVideoPlayer player) {}
+  public void onPaused(EasyVideoPlayer player) {
+      EditTextListener listener = (EditTextListener) getActivity();
+      listener.onVideoPaused();
+  }
 
   @Override
   public void onPreparing(EasyVideoPlayer player) {}
@@ -180,6 +193,8 @@ public class PlaybackVideoFragment extends Fragment
 
   @Override
   public void onSubmit(EasyVideoPlayer player, Uri source) {
+      EditTextListener listener = (EditTextListener) getActivity();
+    listener.onAccept();
     useVideo();
   }
 }

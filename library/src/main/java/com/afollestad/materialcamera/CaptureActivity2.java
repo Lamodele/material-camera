@@ -12,4 +12,6 @@ public class CaptureActivity2 extends BaseCaptureActivity {
   public Fragment getFragment() {
     return Camera2Fragment.newInstance();
   }
+
+
 }

@@ -3,6 +3,7 @@ package com.afollestad.materialcamerasample;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
@@ -10,6 +11,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.Toast;
 import com.afollestad.materialcamera.MaterialCamera;
 import java.io.File;
@@ -20,6 +23,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
   private static final int CAMERA_RQ = 6969;
   private static final int PERMISSION_RQ = 84;
+    private ListView listView1;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -27,10 +31,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     setContentView(R.layout.activity_main);
     findViewById(R.id.launchCamera).setOnClickListener(this);
-    findViewById(R.id.launchCameraStillshot).setOnClickListener(this);
-    findViewById(R.id.launchFromFragment).setOnClickListener(this);
-    findViewById(R.id.launchFromFragmentSupport).setOnClickListener(this);
 
+    listView1 = (ListView) findViewById(R.id.listView1);
     if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
         != PackageManager.PERMISSION_GRANTED) {
       // Request permission to save videos in external storage
@@ -42,17 +44,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
   @SuppressWarnings("ResultOfMethodCallIgnored")
   @Override
   public void onClick(View view) {
-    if (view.getId() == R.id.launchFromFragment) {
-      Intent intent = new Intent(this, FragmentActivity.class);
-      startActivity(intent);
-      return;
-    }
-    if (view.getId() == R.id.launchFromFragmentSupport) {
-      Intent intent = new Intent(this, FragmentActivity.class);
-      intent.putExtra("support", true);
-      startActivity(intent);
-      return;
-    }
 
     File saveDir = null;
 
@@ -68,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             .saveDir(saveDir)
             .showPortraitWarning(true)
             .allowRetry(true)
-            .defaultToFrontFacing(true)
+            .defaultToFrontFacing(false)
             .allowRetry(true)
             .autoSubmit(false)
             .labelConfirm(R.string.mcam_use_video);
@@ -100,12 +91,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // Received recording or error from MaterialCamera
     if (requestCode == CAMERA_RQ) {
       if (resultCode == RESULT_OK) {
-        final File file = new File(data.getData().getPath());
+        Bundle extras = data.getExtras();
+        String returnUri = extras.getString(MaterialCamera.URI_EXTRA);
+        final File file = new File(Uri.parse(returnUri).getPath());
         Toast.makeText(
                 this,
                 String.format("Saved to: %s, size: %s", file.getAbsolutePath(), fileSize(file)),
                 Toast.LENGTH_LONG)
             .show();
+         String[] licenseList = extras.getStringArray(MaterialCamera.LICENSE_EXTRA);
+         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+                  android.R.layout.simple_list_item_1, licenseList);
+
+         listView1.setAdapter(adapter);
       } else if (data != null) {
         Exception e = (Exception) data.getSerializableExtra(MaterialCamera.ERROR_EXTRA);
         if (e != null) {
